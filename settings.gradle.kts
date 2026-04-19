@@ -1,20 +1,19 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+
 rootProject.name = "subsi-door"
 
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
-    versionCatalogs {
-        create("libs") {
-            from(files("gradle/libs.versions.toml"))
-        }
-    }
 }
 
 // Uncomment each line only after generating that service via Spring Initializr
 
 // Infrastructure
-// include("infra:eureka-server")
+include("infra:eureka-server")
 // include("infra:config-server")
 // include("infra:api-gateway")
 
