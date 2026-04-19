@@ -14,7 +14,7 @@ dependencyResolutionManagement {
 
 // Infrastructure
 include("infra:eureka-server")
-// include("infra:config-server")
+include("infra:config-server")
 // include("infra:api-gateway")
 
 // Shared libs
