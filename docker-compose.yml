@@ -1,0 +1,98 @@
+services:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 1. EUREKA SERVER  (Service Registry)
+  #    Every other service registers itself here at startup so they can find
+  #    each other by name instead of hardcoded IPs.
+  #    Must start FIRST — nothing else can register without it.
+  # ─────────────────────────────────────────────────────────────────────────────
+  eureka-server:
+    platform: linux/amd64
+    build:
+      context: .                                     # root of the repo
+      dockerfile: infra/eureka-server/Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"                                  # dashboard: http://localhost:8761
+    networks:
+      - subsi-door-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s                              # give Spring Boot time to fully start
+
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 2. CONFIG SERVER  (Centralised Configuration)
+  #    Reads yml files from ./infra/config-server/config/ and serves them to
+  #    any service that asks at startup.  Comes second because it also registers
+  #    with Eureka and needs Eureka to be healthy first.
+  # ─────────────────────────────────────────────────────────────────────────────
+  config-server:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: infra/config-server/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - subsi-door-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy                   # waits for the health check above to pass
+    environment:
+      # Inside Docker, containers talk to each other by service name, not localhost.
+      # These env vars override the application.yml values at runtime.
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    volumes:
+      # Mount the config directory so you can edit yml files without rebuilding
+      # the image.  The image already has a copy; this mount takes precedence.
+      - ./infra/config-server/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 3. API GATEWAY  (Single Entry Point)
+  #    All client requests come in here.  The gateway validates the JWT, then
+  #    uses Eureka to look up which container is running the target service and
+  #    forwards the request.  Starts last because it depends on both above.
+  # ─────────────────────────────────────────────────────────────────────────────
+  api-gateway:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: infra/api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"                                  # all external traffic enters here
+    networks:
+      - subsi-door-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      # Override the config import URL so it reaches the container, not localhost.
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      # JWT config injected from the .env file — never hardcode secrets here.
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared network — all containers can reach each other by service name.
+# Without this, each container would be on its own isolated network.
+# ─────────────────────────────────────────────────────────────────────────────
+networks:
+  subsi-door-net:
+    driver: bridge

@@ -1,0 +1,10 @@
+# Gradle caches and local build outputs — never send these into the Docker build context.
+# Docker only needs source files + the Gradle wrapper.
+.gradle/
+**/build/
+**/.DS_Store
+.git/
+.gitignore
+*.md
+docker-compose.yml
+.env
