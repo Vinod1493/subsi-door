@@ -11,6 +11,7 @@ COPY build.gradle.kts .
 COPY infra/eureka-server/build.gradle.kts  infra/eureka-server/build.gradle.kts
 COPY infra/config-server/build.gradle.kts  infra/config-server/build.gradle.kts
 COPY infra/api-gateway/build.gradle.kts    infra/api-gateway/build.gradle.kts
+COPY services/farmer-identity-service/build.gradle.kts services/farmer-identity-service/build.gradle.kts
 
 RUN ./gradlew :infra:api-gateway:dependencies --no-daemon -q
 

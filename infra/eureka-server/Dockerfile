@@ -20,6 +20,7 @@ COPY build.gradle.kts .
 COPY infra/eureka-server/build.gradle.kts  infra/eureka-server/build.gradle.kts
 COPY infra/config-server/build.gradle.kts  infra/config-server/build.gradle.kts
 COPY infra/api-gateway/build.gradle.kts    infra/api-gateway/build.gradle.kts
+COPY services/farmer-identity-service/build.gradle.kts services/farmer-identity-service/build.gradle.kts
 
 # Resolve and cache all dependencies without compiling anything.
 # If only source files change later, this layer is reused from cache.

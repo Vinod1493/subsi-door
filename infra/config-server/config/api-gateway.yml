@@ -1,67 +1,65 @@
 spring:
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: farmer-identity-service
-          uri: lb://farmer-identity-service
-          predicates:
-            - Path=/api/v1/farmers/**
-          filters:
-            - StripPrefix=0
+      server:
+        webflux:
+          routes:
+            - id: farmer-identity-service
+              uri: http://farmer-identity-service:8081
+              predicates:
+                - Path=/api/v1/farmers/**
+              filters:
+                - StripPrefix=0
 
-        - id: allocation-service
-          uri: lb://allocation-service
-          predicates:
-            - Path=/api/v1/allocations/**
-          filters:
-            - StripPrefix=0
+            - id: allocation-service
+              uri: http://allocation-service:8082
+              predicates:
+                - Path=/api/v1/allocations/**
+              filters:
+                - StripPrefix=0
 
-        - id: order-delivery-service
-          uri: lb://order-delivery-service
-          predicates:
-            - Path=/api/v1/orders/**
-          filters:
-            - StripPrefix=0
+            - id: order-delivery-service
+              uri: http://order-delivery-service:8083
+              predicates:
+                - Path=/api/v1/orders/**
+              filters:
+                - StripPrefix=0
 
-        - id: lease-approval-service
-          uri: lb://lease-approval-service
-          predicates:
-            - Path=/api/v1/leases/**
-          filters:
-            - StripPrefix=0
+            - id: lease-approval-service
+              uri: http://lease-approval-service:8084
+              predicates:
+                - Path=/api/v1/leases/**
+              filters:
+                - StripPrefix=0
 
-        - id: crop-recommendation-service
-          uri: lb://crop-recommendation-service
-          predicates:
-            - Path=/api/v1/recommendations/**
-          filters:
-            - StripPrefix=0
+            - id: crop-recommendation-service
+              uri: http://crop-recommendation-service:8085
+              predicates:
+                - Path=/api/v1/recommendations/**
+              filters:
+                - StripPrefix=0
 
-        - id: chatbot-service
-          uri: lb://chatbot-service
-          predicates:
-            - Path=/api/v1/chat/**
-          filters:
-            - StripPrefix=0
+            - id: chatbot-service
+              uri: http://chatbot-service:8086
+              predicates:
+                - Path=/api/v1/chat/**
+              filters:
+                - StripPrefix=0
 
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:3000"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
 
 server:
   port: 8080

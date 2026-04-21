@@ -2,7 +2,7 @@ spring:
   application:
     name: farmer-identity-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/farmer_db
+    url: jdbc:postgresql://farmer-db:5432/farmer_db
     username: agri_user
     password: agri_pass
     driver-class-name: org.postgresql.Driver

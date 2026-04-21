@@ -93,6 +93,66 @@ services:
 # Shared network — all containers can reach each other by service name.
 # Without this, each container would be on its own isolated network.
 # ─────────────────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 4. FARMER IDENTITY SERVICE
+  # ─────────────────────────────────────────────────────────────────────────────
+  farmer-identity-service:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/farmer-identity-service/Dockerfile
+    container_name: farmer-identity-service
+    ports:
+      - "8081:8081"
+    networks:
+      - subsi-door-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      farmer-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      FARMER_DB_PASSWORD: ${FARMER_DB_PASSWORD:-agri_pass}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 5. POSTGRES  (farmer-identity-service database)
+  # ─────────────────────────────────────────────────────────────────────────────
+  farmer-db:
+    image: postgres:16
+    container_name: farmer-db
+    ports:
+      - "5432:5432"
+    networks:
+      - subsi-door-net
+    environment:
+      POSTGRES_DB: farmer_db
+      POSTGRES_USER: agri_user
+      POSTGRES_PASSWORD: ${FARMER_DB_PASSWORD:-agri_pass}
+    volumes:
+      - farmer-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agri_user -d farmer_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   subsi-door-net:
     driver: bridge
+
+volumes:
+  farmer-db-data:

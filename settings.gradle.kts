@@ -23,7 +23,7 @@ include("infra:api-gateway")
 // include("shared-libs:common-security")
 
 // Domain services
-// include("services:farmer-identity-service")
+include("services:farmer-identity-service")
 // include("services:allocation-service")
 // include("services:order-delivery-service")
 // include("services:lease-approval-service")
